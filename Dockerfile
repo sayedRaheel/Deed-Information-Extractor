@@ -1,5 +1,5 @@
 # Use RunPod PyTorch image with CUDA support
-FROM runpod/pytorch:2.0.1-py3.10-cuda11.8.0
+FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel
 
 WORKDIR /workspace
 
@@ -15,18 +15,11 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download and cache the OCR model
-RUN python3 -c "from doctr.models import ocr_predictor; ocr_predictor(pretrained=True)"
-
-# Copy only necessary files
-COPY handler.py .
+# Copy application code
+COPY . .
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-
-# Healthcheck to verify GPU availability
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD python3 -c "import torch; assert torch.cuda.is_available(), 'GPU not available'"
 
 # Run the handler
 CMD [ "python", "-u", "handler.py" ]
